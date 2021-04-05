@@ -1,10 +1,10 @@
 # ----------------------------------------------------------------------
-# Nano protocol definition for Kaitai
-# https://github.com/nanocurrency/protocol
+# Nano NFT protocol definition for Kaitai
+# https://github.com/zvex133/protocol
 # ----------------------------------------------------------------------
 meta:
-  id: nano
-  title: Nano Network Protocol
+  id: nanFT
+  title: Nano NFT Network Protocol
   license: BSD 2-Clause
   endian: le
 seq:
@@ -149,7 +149,7 @@ types:
   # Block definitions
   # -------------------------------------------------------------------
 
-  block_send:
+  block_send_token:
     seq:
      - id: previous
        size: 32
@@ -157,9 +157,15 @@ types:
      - id: destination
        size: 32
        doc: Public key of destination account
-     - id: balance
-       size: 16
-       doc: 128-bit big endian balance
+     - id: creator
+       size: 32
+       doc: Public key of creator account
+     - id: token
+       size: 32
+       doc: hash of the token mint block
+     - id: payment
+       size: 32
+       doc: Hash of the payment send block on the nano network
      - id: signature
        size: 64
        doc: ed25519-blake2b signature
@@ -167,7 +173,7 @@ types:
        type: u8le
        doc: Proof of work
 
-  block_receive:
+  block_receive_token:
     seq:
      - id: previous
        size: 32
@@ -182,17 +188,26 @@ types:
        type: u8le
        doc: Proof of work
 
+  block_mint_token:
+    seq:
+     - id: previous
+       size: 32
+       doc: Hash of the previous block
+     - id: name
+       size: 
+       doc: Name of the token
+     - id: data
+       size:
+       doc: data of token
+
   block_open:
     seq:
-     - id: source
-       size: 32
-       doc: Hash of the source send block
      - id: representative
        size: 32
        doc: Public key of initial representative account
      - id: account
        size: 32
-       doc: Public key of account being opened
+       doc: Public key of nano account associated with account being opened
      - id: signature
        size: 64
        doc: ed25519-blake2b signature
@@ -228,7 +243,7 @@ types:
        doc: Public key of the representative account
      - id: balance
        size: 16
-       doc: 128-bit big endian balance
+       doc: 128-bit big endian balance of associated nano account
      - id: link
        size: 32
        doc: Pairing send's block hash (open/receive), 0 (change) or destination public key (send)
@@ -255,8 +270,9 @@ types:
         type:
           switch-on: arg_block_type
           cases:
-            'enum_blocktype::send.to_i': block_send
-            'enum_blocktype::receive.to_i': block_receive
+            'enum_blocktype::send.to_i': block_send_token
+            'enum_blocktype::receive.to_i': block_receive_token
+	    'enum_blocktype::mint.to_i': block_mint_token
             'enum_blocktype::open.to_i': block_open
             'enum_blocktype::change.to_i': block_change
             'enum_blocktype::state.to_i': block_state
